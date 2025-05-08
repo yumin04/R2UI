@@ -1,0 +1,81 @@
+
+<ImageButton@ButtonBehavior+Image>:
+    size_hint: None, None
+    size: 40, 40
+
+<MainScreen>:
+    FloatLayout:
+        canvas.before:
+            Rectangle:
+                source: "assets/Background.png"
+                pos: self.pos
+                size: self.size
+
+        FloatLayout:
+            id: top_ui
+            size_hint: None, 0.1
+            size: 700, 46
+            pos_hint: {"center_x": 0.5, "center_y": 0.9375}
+            canvas.before:
+                Color:
+                    rgba: 1, 1, 1, 1
+                Rectangle:
+                    source: "assets/TopUI.png"
+                    pos: self.pos
+                    size: self.size
+            GridLayout:
+                id: top_ui_buttons
+                cols: 3
+                spacing: 6
+                size_hint: None, None
+                size: 108, 32
+                pos_hint: {"center_x": 0.5, "center_y": 0.58}
+
+                ImageButton:
+                    id: wifi_button
+                    source: "assets/Wifi.png"
+
+                ImageButton:
+                    id: signal_button
+                    source: "assets/Signal.png"
+
+                ImageButton:
+                    id: r2_button
+                    source: "assets/R2.png"
+
+        GridLayout:
+            id: fixed_area
+            cols: 3
+            rows: 3
+            spacing: 10
+            size_hint: 0.45, 0.75
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
+        FloatLayout:
+            id: dynamic_area
+            size_hint: 0.45, 0.75
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
+            Button:
+                id: button_cover
+                size_hint: 0.33, 0.33
+
+            Button:
+                id: button_cover_paw
+                size_hint: 0.2, 0.22
+                background_normal: "assets/R2EmotionSelected/Paw.png"
+                background_down: "assets/R2EmotionSelected/Paw.png"
+                
+
+        
+        FloatLayout:
+            id: panther_left
+            size_hint: 0.275, 1
+            pos_hint: {"center_x": 0.1375, "center_y": 0.5}
+
+        FloatLayout:
+            id: panther_right
+            size_hint: 0.275, 1
+            pos_hint: {"center_x": 0.8625, "center_y": 0.5}
+
+                    
