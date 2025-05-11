@@ -7,6 +7,8 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.image import Image
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.spinner import Spinner
 from kivy.uix.label import Label
 from kivy.properties import StringProperty
@@ -20,17 +22,17 @@ from functools import partial
 from kivy.graphics import PushMatrix, PopMatrix, Scale
 
 
-class HighlightedImage(Image):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        with self.canvas.before:
-            Color(1, 1, 0, 0.3)  # 노란색 배경, 30% 투명도
-            self.bg_rect = Rectangle(pos=self.pos, size=self.size)
-        self.bind(pos=self.update_bg, size=self.update_bg)
+# class HighlightedImage(Image):
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#         with self.canvas.before:
+#             Color(1, 1, 0, 0.3)  # 노란색 배경, 30% 투명도
+#             self.bg_rect = Rectangle(pos=self.pos, size=self.size)
+#         self.bind(pos=self.update_bg, size=self.update_bg)
 
-    def update_bg(self, *args):
-        self.bg_rect.pos = self.pos
-        self.bg_rect.size = self.size
+#     def update_bg(self, *args):
+#         self.bg_rect.pos = self.pos
+#         self.bg_rect.size = self.size
 
 
 try:
@@ -42,10 +44,144 @@ except Exception as e:
 
 Builder.load_file("main.kv")
 
+from kivy.uix.screenmanager import ScreenManager, Screen
 
-class MainScreen(BoxLayout):
+
+class GeneralUI(FloatLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.background()
+        self.initialize_top_ui()
+        self.left_and_right_panther_layout()
+        self.build_panther_left_and_right()
+
+    def background(self):
+        # 배경 이미지
+        with self.canvas.before:
+            self.bg_rect = Rectangle(
+                source="assets/Background.png",
+                pos=self.pos,
+                size=self.size,
+            )
+            self.bind(pos=self.update_rect, size=self.update_rect)
+
+    def initialize_top_ui(self):
+        # top_ui 전체 floatlayout
+        self.top_ui = FloatLayout(
+            size_hint=(None, 0.1),
+            size=(700, 46),
+            pos_hint={"center_x": 0.5, "center_y": 0.9375},
+        )
+
+        with self.top_ui.canvas.before:
+            Color(1, 1, 1, 1)
+            self.top_ui.bg_rect = Rectangle(
+                source="assets/TopUI.png",
+                pos=self.top_ui.pos,
+                size=self.top_ui.size,
+            )
+            self.top_ui.bind(pos=self.update_top_ui, size=self.update_top_ui)
+
+        # 버튼 4개 있는 그리드
+        self.top_ui_buttons = GridLayout(
+            cols=4,
+            spacing=6,
+            size_hint=(None, None),
+            size=(144, 32),  # 32*4 + 6*3
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+        )
+
+        self.top_wifi = Image(
+            source="assets/Wifi.png",
+            size_hint=(None, None),
+            size=(32, 32),
+        )
+        self.top_signal = Image(
+            source="assets/Signal.png",
+            size_hint=(None, None),
+            size=(32, 32),
+        )
+
+        self.top_R2 = Image(
+            source="assets/R2.png",
+            size_hint=(None, None),
+            size=(32, 32),
+        )
+        self.top_ui_buttons.add_widget(self.top_wifi)
+        self.top_ui_buttons.add_widget(self.top_signal)
+        self.top_ui_buttons.add_widget(self.top_R2)
+
+        self.top_ui.add_widget(self.top_ui_buttons)
+        self.add_widget(self.top_ui)
+
+    def left_and_right_panther_layout(self):
+        # panther_left
+        self.panther_left = FloatLayout(
+            size_hint=(0.275, 1),
+            pos_hint={"center_x": 0.1375, "center_y": 0.5},
+        )
+        self.add_widget(self.panther_left)
+
+        # panther_right
+        self.panther_right = FloatLayout(
+            size_hint=(0.275, 1),
+            pos_hint={"center_x": 0.8625, "center_y": 0.5},
+        )
+        self.add_widget(self.panther_right)
+
+    def build_panther_left_and_right(self):
+        scale = 2
+        y_pos = 0.23
+        left_panther = Image(
+            source="assets/PantherSingleLeft.png",
+            size_hint=(scale, scale),
+            pos_hint={"center_x": 0.5, "center_y": y_pos},
+        )
+        right_panther = Image(
+            source="assets/PantherSingleRight.png",
+            size_hint=(scale, scale),
+            pos_hint={"center_x": 0.5, "center_y": y_pos},
+        )
+        self.panther_left.add_widget(left_panther)
+        self.panther_right.add_widget(right_panther)
+
+    def update_rect(self, *args):
+        self.bg_rect.pos = self.pos
+        self.bg_rect.size = self.size
+
+    def update_top_ui(self, instance, *args):
+        instance.bg_rect.pos = instance.pos
+        instance.bg_rect.size = instance.size
+
+    # connection UI logic
+    def connected_wifi(self):
+        self.top_wifi.source = "assets/Wifi.png"
+
+    def disconnected_wifi(self):
+        self.top_wifi.source = "assets/NoWifi.png"
+
+    def connected_R2(self):
+        self.top_R2.source = "assets/R2.png"
+
+    def disconnected_R2(self):
+        self.top_R2.source = "assets/NoR2.png"
+
+    def HP_joystick_click(self):
+        if self.HP_index == 0:
+            self.HP_index = 1
+            self.send_HP_change_signal()
+            print("joystick clicked")
+        else:
+            self.HP_index = 0
+            self.send_HP_change_signal()
+            print("joystick clicked")
+
+
+class MainScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ui = GeneralUI()
+        self.add_widget(self.ui)
         self.global_index = 0
         self.HP_index = 0
         self.emotions = [
@@ -60,10 +196,20 @@ class MainScreen(BoxLayout):
             ("Proud", "Proud.png", (0.84, 0.16)),
         ]
 
-    # build general ui
+    # build UI for Audio
+    def build_UI_for_audio(self):
+        self.build_fixed_grid()
+        self.create_cover()
 
     def build_fixed_grid(self):
-        self.ids.fixed_area.clear_widgets()
+        self.fixed_area = GridLayout(
+            size_hint=(0.45, 0.75),
+            cols=3,
+            rows=3,
+            spacing=10,
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+        )
+
         for label, img, position in self.emotions:
             btn = Button(
                 background_normal=f"assets/R2Emotion/{img}",
@@ -71,70 +217,73 @@ class MainScreen(BoxLayout):
                 size_hint=(0.33, 0.33),
                 on_press=lambda instance, val=label: self.send_emotion_signal(val),
             )
-            self.ids.fixed_area.add_widget(btn)
-        self.cover_cell(self.global_index)
+            self.fixed_area.add_widget(btn)
+        self.add_widget(self.fixed_area)
 
-    def build_panther_left_and_right(self):
-        scale = 2
-        y_pos = 0.23
-        panther_left = Image(
-            source="assets/PantherSingleLeft.png",
-            size_hint=(scale, scale),
-            pos_hint={"center_x": 0.5, "center_y": y_pos},
-        )
-        panther_right = Image(
-            source="assets/PantherSingleRight.png",
-            size_hint=(scale, scale),
-            pos_hint={"center_x": 0.5, "center_y": y_pos},
-        )
-        self.ids.panther_left.add_widget(panther_left)
-        self.ids.panther_right.add_widget(panther_right)
+    def create_cover(self):
+        self.build_dynamic_area()
+        self.create_selected_image_with_paw()
 
-    def cover_cell(self, index):
+    def build_dynamic_area(self):
+        self.dynamic_area = FloatLayout(
+            size_hint=(0.45, 0.75), pos_hint={"center_x": 0.5, "center_y": 0.5}
+        )
+        self.add_widget(self.dynamic_area)
+
+    def get_selected_index(self, index):
         x = self.emotions[index][2][0]
         y = self.emotions[index][2][1]
         paw_x = x - 0.145
         paw_y = y - 0.1
-        cover = self.ids.button_cover
-        cover.pos_hint = {"center_x": x, "center_y": y}
-        cover.background_normal = (
+        background_normal = (
             f"assets/R2EmotionSelected/{self.emotions[index][0]}Selected.png"
         )
-        cover.background_down = (
+        background_down = (
             f"assets/R2EmotionSelected/{self.emotions[index][0]}Selected.png"
         )
-        paw = self.ids.button_cover_paw
-        paw.pos_hint = {"center_x": paw_x, "center_y": paw_y}
+        return x, y, paw_x, paw_y, background_normal, background_down
 
-    def build_top_ui(self):
-        # 첫 번째 버튼 - Wifi
-        wifi_button = Button(
-            background_normal="assets/Wifi.png",
-            background_down="assets/Wifi.png",
-            size_hint=(None, None),
-            size=(40, 40),
+    def create_selected_image_with_paw(self):
+        x, y, paw_x, paw_y, this_background_normal, this_background_down = (
+            self.get_selected_index(0)
         )
-        self.ids.top_ui_buttons.add_widget(wifi_button)
-
-        # 두 번째 버튼 - Signal
-        signal_button = Button(
-            background_normal="assets/Signal.png",
-            background_down="assets/Signal.png",
-            size_hint=(None, None),
-            size=(40, 40),
+        self.button_cover = Button(
+            size_hint=(0.33, 0.33),
+            background_normal=this_background_normal,
+            background_down=this_background_down,
+            pos_hint={"center_x": x, "center_y": y},
         )
-        self.ids.top_ui_buttons.add_widget(signal_button)
-
-        # 세 번째 버튼 - R2
-        r2_button = Button(
-            background_normal="assets/R2.png",
-            background_down="assets/R2.png",
-            size_hint=(None, None),
-            size=(40, 40),
+        self.button_cover_paw = Button(
+            size_hint=(0.2, 0.22),
+            background_normal="assets/R2EmotionSelected/Paw.png",
+            background_down="assets/R2EmotionSelected/Paw.png",
+            pos_hint={"center_x": paw_x, "center_y": paw_y},
         )
-        self.ids.top_ui_buttons.add_widget(r2_button)
+        self.dynamic_area.add_widget(self.button_cover)
+        self.dynamic_area.add_widget(self.button_cover_paw)
 
-    # delete when no memory
+    def cover_cell(self, index):
+        x, y, paw_x, paw_y, this_background_normal, this_background_down = (
+            self.get_selected_index(index)
+        )
+        self.button_cover.background_normal = this_background_normal
+        self.button_cover.background_down = this_background_down
+        self.button_cover.pos_hint = {"center_x": x, "center_y": y}
+        self.button_cover_paw.pos_hint = {"center_x": paw_x, "center_y": paw_y}
+
+    def send_HP_change_signal(self):
+        self.ids.what_HP.text = f"Current HP: {self.HP_index}"
+
+    def send_emotion_signal(self, emotion_name, *args):
+        print(f"[SOUND] Playing emotion: {emotion_name}")
+        sound = SoundLoader.load(f"sounds/{emotion_name.lower()}.mp3")
+        if sound:
+            sound.play()
+        else:
+            print(f"[ERROR] Sound not found: {emotion_name}")
+
+        # input logic
+
     def add_panther_buttons(self):
         left_button = Button(
             text="<",
@@ -145,7 +294,7 @@ class MainScreen(BoxLayout):
             background_color=(0.6, 0.6, 0.6, 0.8),
             on_press=lambda instance: self.spinner_left(),
         )
-        self.ids.panther_left.add_widget(left_button)
+        self.ui.panther_left.add_widget(left_button)
 
         right_button = Button(
             text=">",
@@ -156,9 +305,8 @@ class MainScreen(BoxLayout):
             background_color=(0.6, 0.6, 0.6, 0.8),
             on_press=lambda instance: self.spinner_right(),
         )
-        self.ids.panther_right.add_widget(right_button)
+        self.ui.panther_right.add_widget(right_button)
 
-    # input logic
     def spinner_right(self):
         if self.global_index < len(self.emotions) - 1:
             self.global_index += 1
@@ -173,59 +321,30 @@ class MainScreen(BoxLayout):
         emotion_name, _ = self.emotions[self.global_index]
         self.send_emotion_signal(emotion_name)
 
-    def HP_joystick_click(self):
-        if self.HP_index == 0:
-            self.HP_index = 1
-            self.send_HP_change_signal()
-            print("joystick clicked")
-        else:
-            self.HP_index = 0
-            self.send_HP_change_signal()
-            print("joystick clicked")
 
-    def send_HP_change_signal(self):
-        self.ids.what_HP.text = f"Current HP: {self.HP_index}"
+class AudioScreen(Screen): ...
 
-    def send_emotion_signal(self, emotion_name, *args):
-        print(f"[SOUND] Playing emotion: {emotion_name}")
-        sound = SoundLoader.load(f"sounds/{emotion_name.lower()}.mp3")
-        if sound:
-            sound.play()
-        else:
-            print(f"[ERROR] Sound not found: {emotion_name}")
 
-    # connection UI logic
-    def connected_wifi(self):
-        self.ids.wifi_button.source = "assets/Wifi.png"
-
-    def disconnected_wifi(self):
-        self.ids.wifi_button.source = "assets/NoWifi.png"
-
-    def connected_R2(self):
-        self.ids.r2_button.source = "assets/R2.png"
-
-    def disconnected_R2(self):
-        self.ids.r2_button.source = "assets/NoR2.png"
+class HPScreen(Screen): ...
 
 
 class R2UIApp(App):
     def build(self):
         screen = MainScreen()
-        screen.build_fixed_grid()
-        screen.build_panther_left_and_right()
-
+        screen.build_UI_for_audio()
+        screen.add_panther_buttons()
         # UI logic are these functions, if any of the things are connected/disconnected
         # we can use these 4 functions to change the images
-        # TODO: delete
-        screen.connected_R2()
-        screen.connected_wifi()
-        screen.disconnected_R2()
-        screen.disconnected_wifi()
+        # # TODO: delete
+        # screen.connected_R2()
+        # screen.connected_wifi()
+        # screen.disconnected_R2()
+        # screen.disconnected_wifi()
 
         # If this is deleted, then left and right button deletes
         # so delete this when putting into screen
         # TODO: delete
-        screen.add_panther_buttons()
+        # screen.add_panther_buttons()
         return screen
 
 

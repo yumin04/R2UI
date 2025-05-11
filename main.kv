@@ -42,6 +42,16 @@
                 ImageButton:
                     id: r2_button
                     source: "assets/R2.png"
+        
+        FloatLayout:
+            id: panther_left
+            size_hint: 0.275, 1
+            pos_hint: {"center_x": 0.1375, "center_y": 0.5}
+
+        FloatLayout:
+            id: panther_right
+            size_hint: 0.275, 1
+            pos_hint: {"center_x": 0.8625, "center_y": 0.5}
 
         GridLayout:
             id: fixed_area
@@ -65,17 +75,3 @@
                 size_hint: 0.2, 0.22
                 background_normal: "assets/R2EmotionSelected/Paw.png"
                 background_down: "assets/R2EmotionSelected/Paw.png"
-                
-
-        
-        FloatLayout:
-            id: panther_left
-            size_hint: 0.275, 1
-            pos_hint: {"center_x": 0.1375, "center_y": 0.5}
-
-        FloatLayout:
-            id: panther_right
-            size_hint: 0.275, 1
-            pos_hint: {"center_x": 0.8625, "center_y": 0.5}
-
-                    
