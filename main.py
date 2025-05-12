@@ -41,9 +41,6 @@ except Exception as e:
     ser = None
     print(f"[WARNING] Serial not connected: {e}")
 
-
-Builder.load_file("main.kv")
-
 from kivy.uix.screenmanager import ScreenManager, Screen
 
 
@@ -54,6 +51,7 @@ class GeneralUI(FloatLayout):
         self.initialize_top_ui()
         self.left_and_right_panther_layout()
         self.build_panther_left_and_right()
+        self.build_back_button()
 
     def background(self):
         # 배경 이미지
@@ -128,6 +126,23 @@ class GeneralUI(FloatLayout):
             pos_hint={"center_x": 0.8625, "center_y": 0.5},
         )
         self.add_widget(self.panther_right)
+
+    def build_back_button(self):
+        self.back_button = Button(
+            background_normal="assets/BackButton.png",
+            background_down="assets/BackButton.png",
+            pos_hint={"center_x": 0.5, "center_y": 0.75},
+            size_hint=(0.35, 0.165),
+        )
+        self.panther_left.add_widget(self.back_button)
+
+    def cover_back_button(self):
+        self.back_button.background_normal = "assets/BackButtonSelected.png"
+        self.back_button.background_down = "assets/BackButtonSelected.png"
+
+    def uncover_back_button(self):
+        self.back_button.background_normal = "assets/BackButton.png"
+        self.back_button.background_down = "assets/BackButton.png"
 
     def build_panther_left_and_right(self):
         scale = 2
@@ -263,6 +278,10 @@ class MainScreen(Screen):
         self.dynamic_area.add_widget(self.button_cover_paw)
 
     def cover_cell(self, index):
+        if index == -1:
+            self.select_back_button()
+            return
+        self.unselect_back_button()
         x, y, paw_x, paw_y, this_background_normal, this_background_down = (
             self.get_selected_index(index)
         )
@@ -270,6 +289,20 @@ class MainScreen(Screen):
         self.button_cover.background_down = this_background_down
         self.button_cover.pos_hint = {"center_x": x, "center_y": y}
         self.button_cover_paw.pos_hint = {"center_x": paw_x, "center_y": paw_y}
+
+    def select_back_button(self):
+        self.ui.cover_back_button()
+        self.make_selection_transparent()
+
+    def unselect_back_button(self):
+        self.ui.uncover_back_button()
+        self.make_selection_untransparent()
+
+    def make_selection_transparent(self):
+        self.button_cover.background_color = (1, 1, 1, 0)
+
+    def make_selection_untransparent(self):
+        self.button_cover.background_color = (1, 1, 1, 1)
 
     def send_HP_change_signal(self):
         self.ids.what_HP.text = f"Current HP: {self.HP_index}"
@@ -313,7 +346,7 @@ class MainScreen(Screen):
             self.cover_cell(self.global_index)
 
     def spinner_left(self):
-        if self.global_index > 0:
+        if self.global_index > -1:
             self.global_index -= 1
             self.cover_cell(self.global_index)
 
