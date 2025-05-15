@@ -20,20 +20,7 @@ import serial
 from kivy.core.audio import SoundLoader
 from functools import partial
 from kivy.graphics import PushMatrix, PopMatrix, Scale
-
-
-# class HighlightedImage(Image):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         with self.canvas.before:
-#             Color(1, 1, 0, 0.3)  # 노란색 배경, 30% 투명도
-#             self.bg_rect = Rectangle(pos=self.pos, size=self.size)
-#         self.bind(pos=self.update_bg, size=self.update_bg)
-
-#     def update_bg(self, *args):
-#         self.bg_rect.pos = self.pos
-#         self.bg_rect.size = self.size
-
+from kivy.graphics import Color, Line
 
 try:
     ser = serial.Serial("/dev/ttyUSB0", 115200, timeout=1)
@@ -51,10 +38,8 @@ class GeneralUI(FloatLayout):
         self.initialize_top_ui()
         self.left_and_right_panther_layout()
         self.build_panther_left_and_right()
-        self.build_back_button()
 
     def background(self):
-        # 배경 이미지
         with self.canvas.before:
             self.bg_rect = Rectangle(
                 source="assets/Background.png",
@@ -64,7 +49,6 @@ class GeneralUI(FloatLayout):
             self.bind(pos=self.update_rect, size=self.update_rect)
 
     def initialize_top_ui(self):
-        # top_ui 전체 floatlayout
         self.top_ui = FloatLayout(
             size_hint=(None, 0.1),
             size=(700, 46),
@@ -80,12 +64,11 @@ class GeneralUI(FloatLayout):
             )
             self.top_ui.bind(pos=self.update_top_ui, size=self.update_top_ui)
 
-        # 버튼 4개 있는 그리드
         self.top_ui_buttons = GridLayout(
             cols=4,
             spacing=6,
             size_hint=(None, None),
-            size=(144, 32),  # 32*4 + 6*3
+            size=(144, 32),
             pos_hint={"center_x": 0.5, "center_y": 0.5},
         )
 
@@ -126,23 +109,6 @@ class GeneralUI(FloatLayout):
             pos_hint={"center_x": 0.8625, "center_y": 0.5},
         )
         self.add_widget(self.panther_right)
-
-    def build_back_button(self):
-        self.back_button = Button(
-            background_normal="assets/BackButton.png",
-            background_down="assets/BackButton.png",
-            pos_hint={"center_x": 0.5, "center_y": 0.75},
-            size_hint=(0.35, 0.165),
-        )
-        self.panther_left.add_widget(self.back_button)
-
-    def cover_back_button(self):
-        self.back_button.background_normal = "assets/BackButtonSelected.png"
-        self.back_button.background_down = "assets/BackButtonSelected.png"
-
-    def uncover_back_button(self):
-        self.back_button.background_normal = "assets/BackButton.png"
-        self.back_button.background_down = "assets/BackButton.png"
 
     def build_panther_left_and_right(self):
         scale = 2
@@ -192,10 +158,11 @@ class GeneralUI(FloatLayout):
             print("joystick clicked")
 
 
-class MainScreen(Screen):
+class AudioScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.ui = GeneralUI()
+        self.build_back_button()
         self.add_widget(self.ui)
         self.global_index = 0
         self.HP_index = 0
@@ -290,12 +257,29 @@ class MainScreen(Screen):
         self.button_cover.pos_hint = {"center_x": x, "center_y": y}
         self.button_cover_paw.pos_hint = {"center_x": paw_x, "center_y": paw_y}
 
+    def build_back_button(self):
+        self.back_button = Button(
+            background_normal="assets/BackButton.png",
+            background_down="assets/BackButton.png",
+            pos_hint={"center_x": 0.5, "center_y": 0.75},
+            size_hint=(0.35, 0.165),
+        )
+        self.ui.panther_left.add_widget(self.back_button)
+
+    def cover_back_button(self):
+        self.back_button.background_normal = "assets/BackButtonSelected.png"
+        self.back_button.background_down = "assets/BackButtonSelected.png"
+
+    def uncover_back_button(self):
+        self.back_button.background_normal = "assets/BackButton.png"
+        self.back_button.background_down = "assets/BackButton.png"
+
     def select_back_button(self):
-        self.ui.cover_back_button()
+        self.cover_back_button()
         self.make_selection_transparent()
 
     def unselect_back_button(self):
-        self.ui.uncover_back_button()
+        self.uncover_back_button()
         self.make_selection_untransparent()
 
     def make_selection_transparent(self):
@@ -355,7 +339,115 @@ class MainScreen(Screen):
         self.send_emotion_signal(emotion_name)
 
 
-class AudioScreen(Screen): ...
+class MainScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ui = GeneralUI()
+        self.add_widget(self.ui)
+        self.global_index = 0
+        self.buttons = []
+
+    def build_UI_for_main(self):
+        self.build_fixed_grid()
+        self.cover_button_with_border(0)
+
+    def build_fixed_grid(self):
+        self.fixed_area = GridLayout(
+            size_hint=(0.45, 0.75),
+            cols=2,
+            rows=1,
+            spacing=10,
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+        )
+        self.to_toggle = Button(
+            text="Toggle",
+            size_hint=(0.3, 0.1),
+            pos_hint={"center_x": 0.75, "center_y": 0.9},
+            font_size=20,
+            color=(0, 0, 0, 1),
+            background_normal="",
+            background_color=(1, 1, 1, 1),
+        )
+        self.to_audio = Button(
+            text="Audio",
+            size_hint=(0.3, 0.1),
+            pos_hint={"center_x": 0.75, "center_y": 0.9},
+            font_size=20,
+            color=(0, 0, 0, 1),
+            background_normal="",
+            background_color=(1, 1, 1, 1),
+        )
+        self.fixed_area.add_widget(self.to_toggle)
+        self.fixed_area.add_widget(self.to_audio)
+        self.add_widget(self.fixed_area)
+
+    def cover_button_with_border(self, index):
+        def draw_border(_dt):
+            if index == 0:
+                target = self.to_toggle
+                other = self.to_audio
+            else:
+                target = self.to_audio
+                other = self.to_toggle
+            self._remove_border_from_button(other)
+            with target.canvas.after:
+                Color(1, 0, 0, 1)
+                Line(
+                    rectangle=(target.x, target.y, target.width, target.height),
+                    width=2,
+                )
+
+        Clock.schedule_once(draw_border, 0)
+
+    def _remove_border_from_button(self, button):
+        canvas = button.canvas.after
+        to_remove = []
+        for instr in canvas.children:
+            if isinstance(instr, Line):
+                to_remove.append(instr)
+            elif isinstance(instr, Color):
+                to_remove.append(instr)
+            if len(to_remove) >= 2:
+                break
+
+        for instr in to_remove:
+            canvas.remove(instr)
+
+    def spinner_right(self):
+        if self.global_index < 1:
+            self.global_index += 1
+            self.cover_button_with_border(self.global_index)
+
+    def spinner_left(self):
+        if self.global_index > -1:
+            self.global_index -= 1
+            self.cover_button_with_border(self.global_index)
+
+    def spinner_click(self):
+        return
+
+    def add_panther_buttons(self):
+        left_button = Button(
+            text="<",
+            size_hint=(None, None),
+            size=(40, 40),
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+            background_normal="",
+            background_color=(0.6, 0.6, 0.6, 0.8),
+            on_press=lambda instance: self.spinner_left(),
+        )
+        self.ui.panther_left.add_widget(left_button)
+
+        right_button = Button(
+            text=">",
+            size_hint=(None, None),
+            size=(40, 40),
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+            background_normal="",
+            background_color=(0.6, 0.6, 0.6, 0.8),
+            on_press=lambda instance: self.spinner_right(),
+        )
+        self.ui.panther_right.add_widget(right_button)
 
 
 class HPScreen(Screen): ...
@@ -364,7 +456,7 @@ class HPScreen(Screen): ...
 class R2UIApp(App):
     def build(self):
         screen = MainScreen()
-        screen.build_UI_for_audio()
+        screen.build_UI_for_main()
         screen.add_panther_buttons()
         # UI logic are these functions, if any of the things are connected/disconnected
         # we can use these 4 functions to change the images
