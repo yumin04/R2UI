@@ -73,7 +73,7 @@ class MainView(FloatLayout):
             self.border_canvas.remove(self.border_color)
             self.border_color = None
 
-    def spinner_click(self):
-        if self.global_index == 0:
+    def spinner_click(self, index):
+        if index == 0:
             return "audio"
         return "toggle"

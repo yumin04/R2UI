@@ -105,16 +105,15 @@ class AudioView(FloatLayout):
 
     def build_back_button(self):
         self.back_button_area = FloatLayout(
-            size_hint=(None, None),
-            size=(300, 100),
-            pos_hint={"center_x": 0.5, "center_y": 0.75},
+            size_hint=(0.275, 1),
+            pos_hint={"center_x": 0.1375, "center_y": 0.5},
         )
 
         self.back_button = Button(
             background_normal="assets/BackButton.png",
             background_down="assets/BackButton.png",
             size_hint=(0.35, 0.165),
-            pos_hint={"center_x": 0.5, "center_y": 0.5},
+            pos_hint={"center_x": 0.5, "center_y": 0.75},
         )
 
         self.back_button_area.add_widget(self.back_button)
@@ -153,9 +152,9 @@ class AudioView(FloatLayout):
         else:
             print(f"[ERROR] Sound not found: {emotion_name}")
 
-    def spinner_click(self):
-        if self.global_index == -1:
+    def spinner_click(self, index):
+        if index == -1:
             return "back"
-        emotion_name, _, _ = self.emotions[self.global_index]
+        emotion_name, _, _ = self.emotions[index]
         self.send_emotion_signal(emotion_name)
         return "button"

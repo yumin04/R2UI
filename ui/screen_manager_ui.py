@@ -33,6 +33,7 @@ class RootWidget(Screen):  # 기존에는 FloatLayout이었음
         self.switch_view("main")  # default view
 
     def switch_view(self, name):
+        self.global_index = 0
         if self.current_view:
             self.content_area.remove_widget(self.current_view)
         self.current_view = self.views[name]
